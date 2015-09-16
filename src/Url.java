@@ -1,15 +1,20 @@
 
-public class Url {
+public class Url implements Comparable<Url> {
 	
 	private int id;
+	private double score;
 	private int numOfVisits = 0; // x1
 	private int timesChanged = 0; // x2
 	private int lastVisitCycle = 0; // x3
 //	private int numberOfNewLinks = 0; // x4
 //	private int numberOfNewRelevantLinks = 0; // y
 	
+	public Url (int id) {
+		setId(id);
+	}
 	
-	public void Update(int cycle, boolean changed) {
+	// update counters after each Url "visit"
+	public void update(int cycle, boolean changed) {
 		if (cycle == 0) {
             System.out.println("Invalid cycle value: " + cycle);
             System.exit(0);
@@ -19,23 +24,38 @@ public class Url {
 		lastVisitCycle = cycle;
 	}
 	
-	int getId() {
+	@Override
+	public int compareTo(Url url) {
+        if (this.getScore() < url.getScore()) return -1;
+        else if (this.getScore() > url.getScore()) return -1;
+        else return 0;
+    }
+	
+	public int getId() {
 		return id;
 	}
 	
-	void setId(int id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 	
-	int getNumOfVisits() {
+	public double getScore() {
+		return score;
+	}
+
+	public void setScore(double score) {
+		this.score = score;
+	}
+	
+	public int getNumOfVisits() {
         return numOfVisits;
     }
 
-    int getTimesChanged(){
+	public int getTimesChanged(){
         return timesChanged;
     }
 
-    int getLastVisitCycle() {
+	public int getLastVisitCycle() {
         return lastVisitCycle;
     }
 	
