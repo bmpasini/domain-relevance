@@ -2,16 +2,16 @@ package domainRelevance.scorer;
 
 import domainRelevance.Url;
 
-public class AgeScorer implements Scorer {
+public class NADChangeRateScorer implements Scorer {
 
 	@Override
 	public double score(Url url, int cycle) {
-		return url.getAge(cycle);
+		return url.getNADChangeRate(cycle);
 	}
 
 	@Override
 	public String getName() {
-		return "age";
+		return "NAD";
 	}
 
 }

@@ -1,5 +1,8 @@
 package domainRelevance;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Url implements Comparable<Url> {
 
 	private int id;
@@ -9,6 +12,13 @@ public class Url implements Comparable<Url> {
 	private int lastVisitCycle = 0; // x3
 	// private int numberOfNewLinks = 0; // x4
 	// private int numberOfNewRelevantLinks = 0; // y
+	private List<Integer> history = new ArrayList<>();
+	private int NADCachedCycle;
+	private int AADCachedCycle;
+	private int GADCachedCycle;
+	private double NADCachedValue;
+	private double AADCachedValue;
+	private double GADCachedValue;
 
 	public Url(int id) {
 		this.id = id;
@@ -44,6 +54,25 @@ public class Url implements Comparable<Url> {
     public double getChoChangeRate() {
         return - Math.log((numOfVisits - timesChanged + 0.5) / (numOfVisits + 0.5));
     }
+    
+    // Non adaptive change rate (NAD)
+    public double getNADChangeRate(int cycle) {
+    	
+    	if(NADCachedCycle == cycle) return NADCachedValue;
+
+        double weight = 1.0 / (cycle - 1);
+        double NAD = 0.0;
+        
+        for (int h = 0; h < history.size(); ++h)
+        	NAD += weight;
+
+        NADCachedCycle = cycle;
+        NADCachedValue = NAD;
+
+        return NAD;
+    }
+    
+    
 
 	public int getId() {
 		return id;

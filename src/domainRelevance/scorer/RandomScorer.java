@@ -11,7 +11,7 @@ public class RandomScorer implements Scorer {
 
 	@Override
 	public String getName() {
-		return "Random";
+		return "random";
 	}
 
 }

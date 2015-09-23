@@ -11,7 +11,7 @@ public class ChoChangeRateScorer implements Scorer {
 
 	@Override
 	public String getName() {
-		return "Cho";
+		return "cho";
 	}
 
 }
