@@ -57,22 +57,25 @@ public class Url implements Comparable<Url> {
     
     // Non adaptive change rate (NAD)
     public double getNADChangeRate(int cycle) {
-    	
     	if(NADCachedCycle == cycle) return NADCachedValue;
-
+    	
         double weight = 1.0 / (cycle - 1);
         double NAD = 0.0;
         
         for (int h = 0; h < history.size(); ++h)
         	NAD += weight;
-
+        
         NADCachedCycle = cycle;
         NADCachedValue = NAD;
-
+        
         return NAD;
     }
     
-    
+    // Shortsighted adaptive change rate (SAD)
+    public double getSADChangeRate(int cycle) {
+        if(!history.isEmpty() && history.get(history.size() - 1) == cycle - 1) return 1.0;
+        else return 0.0;
+    }
 
 	public int getId() {
 		return id;
