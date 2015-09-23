@@ -6,6 +6,7 @@ import java.util.List;
 public class Url implements Comparable<Url> {
 	
 	private static Sum kSum;
+	private static int kDefaultWindowSize = 32;
 	private static final int MAX_SUM = 200;
 
 	private int id;
@@ -26,6 +27,17 @@ public class Url implements Comparable<Url> {
 	public Url(int id) {
 		this.id = id;
 	}
+	
+	// compareTo for Comparable interface
+	@Override
+	public int compareTo(Url url) {
+		if (this.getScore() < url.getScore())
+			return -1;
+		else if (this.getScore() > url.getScore())
+			return 1;
+		else
+			return 0;
+	}
 
 	// update counters after each Url "visit"
 	public void update(int cycle, boolean changed) {
@@ -38,20 +50,6 @@ public class Url implements Comparable<Url> {
 			timesChanged++;
 		lastVisitCycle = cycle;
 	}
-
-	@Override
-	public int compareTo(Url url) {
-		if (this.getScore() < url.getScore())
-			return -1;
-		else if (this.getScore() > url.getScore())
-			return 1;
-		else
-			return 0;
-	}
-	
-	public double getAge(int cycle) {
-        return cycle - lastVisitCycle;
-    }
 	
 	// Cho's change rate estimator
     public double getChoChangeRate() {
@@ -60,7 +58,7 @@ public class Url implements Comparable<Url> {
     
     // Non adaptive change rate (NAD)
     public double getNADChangeRate(int cycle) {
-    	if(NADCachedCycle == cycle) return NADCachedValue;
+    	if (NADCachedCycle == cycle) return NADCachedValue;
     	
         double weight = 1.0 / (cycle - 1);
         double NAD = 0.0;
@@ -76,19 +74,20 @@ public class Url implements Comparable<Url> {
     
     // Shortsighted adaptive change rate (SAD)
     public double getSADChangeRate(int cycle) {
-        if(!history.isEmpty() && history.get(history.size() - 1) == cycle - 1) return 1.0;
+        if (!history.isEmpty() && history.get(history.size() - 1) == cycle - 1) return 1.0;
         else return 0.0;
     }
     
     // Arithmetically adaptive change rate (AAD)
     public double getAADChangeRate(int cycle) {
-        if(AADCachedCycle == cycle) return AADCachedValue;
+        if (AADCachedCycle == cycle) return AADCachedValue;
         
         double AAD = 0.0;
+        double i, weight;
         
         for (int h = 0; h < history.size(); h++) {
-            double i = history.get(h);
-            double weight = i / kSum.AAD(cycle - 1);
+            i = history.get(h);
+            weight = i / kSum.AAD(cycle - 1);
             AAD += weight;
         }
 
@@ -100,13 +99,15 @@ public class Url implements Comparable<Url> {
     
     // Geometrically adaptive change rate (GAD)
     public double getGADChangeRate(int cycle) {
-        if(GADCachedCycle == cycle) return GADCachedValue;
+        if (GADCachedCycle == cycle) return GADCachedValue;
         
+        int i;
+        double weight;
         double GAD = 0.0;
         
         for (int h = 0; h < history.size(); ++h) {
-            int i = history.get(h);
-            double weight = kSum.Pow2i1(i) / kSum.GAD(cycle - 1);
+            i = history.get(h);
+            weight = kSum.Pow2i1(i) / kSum.GAD(cycle - 1);
             GAD += weight;
         }
 
@@ -136,7 +137,88 @@ public class Url implements Comparable<Url> {
     public double getChangeProbabilityGAD(int cycle) {
         return 1.0 - Math.exp(- getGADChangeRate(cycle) * getAge(cycle));
     }
+    
+    // Windowed change rate scorers
+    
+    // Windowed non-adaptive change rate (NAD)
+    public double getWNADChangeRate(int cycle) {
+        if (NADCachedCycle == cycle) return NADCachedValue;
 
+        int window_size = getWindowSize(cycle);
+        int window_start = cycle - 1 - window_size;
+        double weight = 1.0 / (window_size);
+        double NAD = 0.0;
+        
+        for (int h = 0; h < history.size(); ++h) {
+            if (history.get(h) > window_start) {
+                NAD += weight;
+            }
+        }
+
+        NADCachedCycle = cycle;
+        NADCachedValue = NAD;
+
+        return NAD;
+    }
+    
+    // Windowed arithmetically adaptive change rate (AAD)
+    public double getWAADChangeRate(int cycle) {
+        if(AADCachedCycle == cycle) return AADCachedValue;
+        
+        int window_size = getWindowSize(cycle);
+        int window_start = cycle - 1 - window_size;
+        double i, weight;
+        double AAD = 0.0;
+        
+        for (int h = 0; h < history.size(); ++h) {
+            if (history.get(h) > window_start) {
+                i = history.get(h) - window_start;
+                weight = i / kSum.AAD(window_size);
+                AAD += weight;
+            }
+        }
+
+        AADCachedCycle = cycle;
+        AADCachedValue = AAD;
+
+        return AAD;
+    }
+    
+    // Windowed geometrically adaptive change rate (GAD)
+    public double getWGADChangeRate(int cycle) {
+        if(GADCachedCycle == cycle) return GADCachedValue;
+
+        int window_size = getWindowSize(cycle);
+        int window_start = cycle - 1 - window_size;
+        int i;
+        double weight;
+        double GAD = 0.0;
+        
+        for (int h = 0; h < history.size(); ++h) {
+            if(history.get(h) > window_start) {
+                i = history.get(h) - window_start;
+                weight = kSum.Pow2i1(i) / kSum.GAD(window_size);
+                GAD += weight;
+            }
+        }
+
+        GADCachedCycle = cycle;
+        GADCachedValue = GAD;
+
+        return GAD;
+    }
+    
+    // Auxiliary methods
+    public double getAge(int cycle) {
+        return cycle - lastVisitCycle;
+    }
+    
+    public int getWindowSize(int cycle) {
+        if(kDefaultWindowSize < cycle - 1) return kDefaultWindowSize;
+        else return cycle - 1;
+    }
+    
+    // Getters
 	public int getId() {
 		return id;
 	}
@@ -161,6 +243,7 @@ public class Url implements Comparable<Url> {
 		return lastVisitCycle;
 	}
 	
+	// Inner class Sum - Structure to hold scorer sums
 	public class Sum {
 		
 		private double[] sumAAD = new double[MAX_SUM + 1];
