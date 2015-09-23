@@ -7,12 +7,11 @@ import domainRelevance.scorer.Scorer;
 public class CrawlSimulation {
 
 	public static final int NUM_OF_URLS = 1000000; // 1,000,000 urls
-	public static final int NUM_OF_CYCLES = 60; // 60 cycles
-	public static final int NUM_OF_FEATURES = 3; // 3 features [changed
-													// (boolean), numOfNewLinks
-													// (int),
-													// numOfRelevantNewLinks
-													// (int)]
+	public static final int NUM_OF_CYCLES = 60;    // 60 cycles
+	public static final int NUM_OF_FEATURES = 3;   // 3 features
+												   // [changed (boolean),
+												   // numOfNewLinks (int),
+												   // numOfRelevantNewLinks (int)]
 
 	private static ArrayList<Double> changeRate = new ArrayList<>();
 	private static Url[] repository = new Url[NUM_OF_URLS];
@@ -26,8 +25,7 @@ public class CrawlSimulation {
 
 		int cycle = 1;
 
-		// start warmup cycles, so our scorer can have something to start
-		// working with
+		// start warmup cycles, so our scorer can have something to start working with
 		for (; cycle <= warmUp; cycle++) {
 			for (int i = 0; i < NUM_OF_URLS; i++) {
 				if (dataset.changedBetweenCycles(i, repository[i].getLastVisitCycle(), cycle)) {
@@ -43,7 +41,7 @@ public class CrawlSimulation {
 
 			// give score to each Url for each cycle
 			for (int i = 0; i < NUM_OF_URLS; i++) {
-				// repository[i].setScore(scorer.score(repository[i], cycle)));
+				repository[i].setScore(scorer.score(repository[i], cycle));
 			}
 
 			// sort repository of Urls in relation to their scores
@@ -61,13 +59,9 @@ public class CrawlSimulation {
 				}
 			}
 
-			changeRate.add(changes / ((double) k)); // store the learning rate
-													// for each cycle (how many
-													// of the selected k pages
-													// have changed, and later,
-													// how many have relevant
-													// links in the k pages
-													// selected)
+			changeRate.add(changes / ((double) k)); // store the learning rate for each cycle (how many
+													// of the selected k pages have changed, and later,
+													// how many have relevant links in the k pages selected)
 		}
 	}
 }

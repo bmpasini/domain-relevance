@@ -240,10 +240,6 @@ public class Url implements Comparable<Url> {
 		return score;
 	}
 
-	public void setScore(double score) {
-		this.score = score;
-	}
-
 	public int getNumOfVisits() {
 		return numOfVisits;
 	}
@@ -254,6 +250,11 @@ public class Url implements Comparable<Url> {
 
 	public int getLastVisitCycle() {
 		return lastVisitCycle;
+	}
+	
+	// Setters
+	public void setScore(double score) {
+		this.score = score;
 	}
 	
 	// Inner class Sum - Structure to hold scorer sums
