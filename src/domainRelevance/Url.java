@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Url implements Comparable<Url> {
+	
+	private static Sum kSum;
+	private static final int MAX_SUM = 200;
 
 	private int id;
 	private double score;
@@ -76,6 +79,24 @@ public class Url implements Comparable<Url> {
         if(!history.isEmpty() && history.get(history.size() - 1) == cycle - 1) return 1.0;
         else return 0.0;
     }
+    
+    // Arithmetically adaptive change rate (AAD)
+    public double getAADChangeRate(int cycle) {
+        if(AADCachedCycle == cycle) return AADCachedValue;
+        
+        double AAD = 0.0;
+        
+        for (int h = 0; h < history.size(); h++) {
+            double i = history.get(h);
+            double weight = i / kSum.AAD(cycle - 1);
+            AAD += weight;
+        }
+
+        AADCachedCycle = cycle;
+        AADCachedValue = AAD;
+
+        return AAD;
+    }
 
 	public int getId() {
 		return id;
@@ -99,6 +120,36 @@ public class Url implements Comparable<Url> {
 
 	public int getLastVisitCycle() {
 		return lastVisitCycle;
+	}
+	
+	public class Sum {
+		
+		private double[] sumAAD = new double[MAX_SUM + 1];
+		private double[] sumGAD = new double[MAX_SUM + 1];
+		private double[] pow2iMinus1 = new double[MAX_SUM + 1];
+		
+		public Sum() {
+			for (int w_i = 0; w_i <= MAX_SUM; w_i++) {
+				sumAAD[w_i] = 0;
+		        for (int i = 1; i <= w_i; i++) sumAAD[w_i] += i;
+		    }
+		    for (int w_i = 0; w_i <= MAX_SUM; w_i++) {
+		    	sumGAD[w_i] = 0;
+		        for (int i = 1; i <= w_i; i++) sumGAD[w_i] += Math.pow(2, i - 1);
+		    }
+		    for (int i = 0; i <= MAX_SUM; i++) pow2iMinus1[i] = Math.pow(2, i - 1);
+		}
+		
+		public double AAD(int i) {
+            return sumAAD[i];
+        }
+		public double GAD(int i) {
+            return sumGAD[i];
+        }
+		public double Pow2i1(int i) {
+            return pow2iMinus1[i];
+        }
+		
 	}
 
 }
