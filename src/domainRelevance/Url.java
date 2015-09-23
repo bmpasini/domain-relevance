@@ -115,6 +115,27 @@ public class Url implements Comparable<Url> {
 
         return GAD;
     }
+    
+    // Change probability scorers
+    public double getChangeProbabilityCho(int cycle) {
+        return 1.0 - Math.exp(- getChoChangeRate() * getAge(cycle));
+    }
+
+    public double getChangeProbabilityNAD(int cycle) {
+        return 1.0 - Math.exp(- getNADChangeRate(cycle) * getAge(cycle));
+    }
+
+    public double getChangeProbabilitySAD(int cycle) {
+        return 1.0 - Math.exp(- getSADChangeRate(cycle) * getAge(cycle));
+    }
+
+    public double getChangeProbabilityAAD(int cycle) {
+        return 1.0 - Math.exp(- getAADChangeRate(cycle) * getAge(cycle));
+    }
+
+    public double getChangeProbabilityGAD(int cycle) {
+        return 1.0 - Math.exp(- getGADChangeRate(cycle) * getAge(cycle));
+    }
 
 	public int getId() {
 		return id;
