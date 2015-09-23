@@ -97,6 +97,24 @@ public class Url implements Comparable<Url> {
 
         return AAD;
     }
+    
+    // Geometrically adaptive change rate (GAD)
+    public double getGADChangeRate(int cycle) {
+        if(GADCachedCycle == cycle) return GADCachedValue;
+        
+        double GAD = 0.0;
+        
+        for (int h = 0; h < history.size(); ++h) {
+            int i = history.get(h);
+            double weight = kSum.Pow2i1(i) / kSum.GAD(cycle - 1);
+            GAD += weight;
+        }
+
+        GADCachedCycle = cycle;
+        GADCachedValue = GAD;
+
+        return GAD;
+    }
 
 	public int getId() {
 		return id;
