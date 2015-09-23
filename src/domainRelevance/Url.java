@@ -208,6 +208,19 @@ public class Url implements Comparable<Url> {
         return GAD;
     }
     
+    // Windowed change probability scorers
+    public double getChangeProbabilityWNAD(int cycle) {
+        return 1.0 - Math.exp(- getWNADChangeRate(cycle) * getAge(cycle));
+    }
+
+    public double getChangeProbabilityWAAD(int cycle) {
+        return 1.0 - Math.exp(- getWAADChangeRate(cycle) * getAge(cycle));
+    }
+
+    public double getChangeProbabilityWGAD(int cycle) {
+        return 1.0 - Math.exp(- getWGADChangeRate(cycle) * getAge(cycle));
+    }
+    
     // Auxiliary methods
     public double getAge(int cycle) {
         return cycle - lastVisitCycle;
