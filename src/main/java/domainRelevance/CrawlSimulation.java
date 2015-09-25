@@ -6,29 +6,29 @@ import domainRelevance.scorer.Scorer;
 
 public class CrawlSimulation {
 
-	public static final int NUM_OF_URLS = 1000000; // 1,000,000 urls
-	public static final int NUM_OF_CYCLES = 60;    // 60 cycles
-	public static final int NUM_OF_FEATURES = 3;   // 3 features
-												   // [changed (boolean),
-												   // numOfNewLinks (int),
-												   // numOfRelevantNewLinks (int)]
-
 	private static ArrayList<Double> changeRate = new ArrayList<>();
-	private static Url[] repository = new Url[NUM_OF_URLS];
 
 	public static void run(Scorer scorer, Dataset dataset, int warmUp, int k) {
+		
+		final int numOfUrls = dataset.numOfUrls();
+		final int numOfCycles = dataset.numOfCycles();
+		
+		Url[] repository = new Url[numOfUrls];
+		int changes, cycle;
+		
+		changeRate.clear();
 
 		// create repository of new urls
-		for (int i = 0; i < NUM_OF_URLS; i++) {
+		for (int i = 0; i < numOfUrls; i++) {
 			repository[i] = new Url(i);
 		}
 
-		int cycle = 1;
+		cycle = 1;
 
 		// start warmup cycles, so our scorer can have something to start working with
 		for (; cycle <= warmUp; cycle++) {
-			for (int i = 0; i < NUM_OF_URLS; i++) {
-				if (dataset.changedBetweenCycles(i, repository[i].getLastVisitCycle(), cycle)) {
+			for (int i = 0; i < numOfUrls; i++) {
+				if (dataset.getPageHistory(i).changedBetweenCycles(repository[i].getLastVisitCycle(), cycle)) {
 					repository[i].update(cycle, true);
 				} else {
 					repository[i].update(cycle, false);
@@ -37,21 +37,21 @@ public class CrawlSimulation {
 		}
 
 		// examine until the last collected cycle
-		for (; cycle <= NUM_OF_CYCLES; cycle++) {
+		for (; cycle <= numOfCycles; cycle++) {
 
 			// give score to each Url for each cycle
-			for (int i = 0; i < NUM_OF_URLS; i++) {
+			for (int i = 0; i < numOfUrls; i++) {
 				repository[i].setScore(scorer.score(repository[i], cycle));
 			}
 
 			// sort repository of Urls in relation to their scores
 			Arrays.sort(repository);
 
-			int changes = 0;
+			changes = 0;
 
 			// update Urls data after each cycle
 			for (int i = 0; i < k; i++) {
-				if (dataset.changedBetweenCycles(i, repository[i].getLastVisitCycle(), cycle)) {
+				if (dataset.getPageHistory(i).changedBetweenCycles(repository[i].getLastVisitCycle(), cycle)) {
 					changes++;
 					repository[i].update(cycle, true);
 				} else {
@@ -64,4 +64,21 @@ public class CrawlSimulation {
 													// how many have relevant links in the k pages selected)
 		}
 	}
+	
+	public double averageChangeRate() {
+        return listAverage(changeRate);
+    }
+	
+	private double listAverage(ArrayList<Double> list) {
+		
+		if(list.size() == 0) return 0;
+		
+		double sum = 0.0;
+        
+        for (int i = 0; i < list.size(); i++)
+            sum += list.get(i);
+        
+        return sum / list.size();
+    }
+	
 }

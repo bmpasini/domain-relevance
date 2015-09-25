@@ -1,56 +1,102 @@
 package domainRelevance;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Dataset {
-
-	public static final int NUM_OF_URLS = 1000000; // 1,000,000 urls
-	public static final int NUM_OF_CYCLES = 60;    // 60 cycles
-	public static final int NUM_OF_FEATURES = 3;   // 3 features
-												   // [changed (boolean),
-												   // numOfNewLinks (int),
-												   // numOfRelevantNewLinks (int)]
-
-	private int[][][] dataset = new int[NUM_OF_URLS][NUM_OF_CYCLES][NUM_OF_FEATURES];
-
-	public Dataset(int[][][] dataset) {
-		this.dataset = dataset;
-	}
-
-	// return true if url changed between certain cycles (days)
-	public boolean changedBetweenCycles(int urlId, int lastVisitCycle, int currentCycle) {
-		int[] cycleFeatures;
-
-		for (int i = lastVisitCycle; i < currentCycle; i++) {
-			cycleFeatures = getFeaturesFromUrlAndCycle(urlId, i);
-			if (cycleFeatures[0] == '1')
-				return true; // assuming that 1 means that the URL changed in
-								// that cycle
+	
+	public class PageHistory {
+		
+		public class PageProperties {
+			
+			private boolean changed;
+			private int numOfNewLinks;
+			private int numOfNewRelevantLinks;
+			
+			public PageProperties(boolean changed, int numOfNewLinks, int numOfRelevantNewLinks) {
+				this.changed = changed;
+				this.numOfNewLinks = numOfNewLinks;
+				this.numOfNewRelevantLinks = numOfRelevantNewLinks;
+			}
+			
+			public boolean getChanged() {
+				return changed;
+			}
+			
+			public int getNumOfNewLinks() {
+				return numOfNewLinks;
+			}
+			
+			public int getNumOfNewRelevantLinks() {
+				return numOfNewRelevantLinks;
+			}
+			
 		}
-		return false;
-	}
+		
+		private List<PageProperties> cycles = new ArrayList<>();
+	        
+        public PageHistory(List<PageProperties> cycles) {
+        	this.cycles = cycles;
+        }
+        
+        // return true if url changed between certain cycles (days)
+    	public boolean changedBetweenCycles(int lastVisitCycle, int currentCycle) {
+    		PageProperties cycleFeatures;
 
-	// return the number of new (relevant) links between certain cycles (days)
-	public int numOfNewLinksBetweenCycles(int urlId, int lastVisitCycle, int currentCycle, boolean isLinkRelevant) {
-		int numOfNewLinks = 0;
-		int[] cycleFeatures;
+    		for (int i = lastVisitCycle; i < currentCycle; i++) {
+    			cycleFeatures = cycles.get(i);
+    			if (cycleFeatures.getChanged() == true)
+    				return true;
+    		}
+    		return false;
+    	}
 
-		for (int i = lastVisitCycle; i < currentCycle; i++) {
-			cycleFeatures = getFeaturesFromUrlAndCycle(urlId, i);
-			if (!isLinkRelevant)
-				numOfNewLinks += cycleFeatures[1]; // assuming that
-													// cycleFeatures[1] means
-													// the number of new links
-													// in that cycle
-			else
-				numOfNewLinks += cycleFeatures[2]; // assuming that
-													// cycleFeatures[2] means
-													// the number of new
-													// relevant links in that
-													// cycle
+		// return the number of new (relevant) links between certain cycles (days)
+		public int numOfNewLinksBetweenCycles(int urlId, int lastVisitCycle, int currentCycle, boolean isLinkRelevant) {
+			int numOfNewLinks = 0;
+    		PageProperties cycleFeatures;
+	
+			for (int i = lastVisitCycle; i < currentCycle; i++) {
+				cycleFeatures = cycles.get(i);
+				if (!isLinkRelevant)
+					numOfNewLinks += cycleFeatures.getNumOfNewLinks();
+				else
+					numOfNewLinks += cycleFeatures.getNumOfNewRelevantLinks();
+			}
+			return numOfNewLinks;
 		}
-		return numOfNewLinks;
-	}
+		
+		// Auxiliary methods
+		public int getNumOfCycles() {
+    		return cycles.size();
+    	}
 
-	public int[] getFeaturesFromUrlAndCycle(int urlId, int cycle) {
-		return dataset[urlId][cycle];
+        public List<PageProperties> getCycles() {
+        	return cycles;
+        }
+		
 	}
+	
+	private List<PageHistory> dataset = new ArrayList<>();
+	
+	// get page history of url in the index i of the dataset
+	public PageHistory getPageHistory(int i) {
+		return dataset.get(i);
+	}
+	
+	// number of urls in the dataset
+	public int numOfUrls() {
+        return dataset.size();
+    }
+	
+	// number of cycles a PageHistory instance has (assuming that all of them have the same number of cycles)
+	public int numOfCycles() {
+        return getPageHistory(0).getNumOfCycles();
+    }
+	
+	// add new PageHistory instance to the dataset
+    public void add(PageHistory pageHistory) {
+    	dataset.add(pageHistory);
+    }
+	
 }
