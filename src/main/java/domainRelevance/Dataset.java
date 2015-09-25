@@ -5,15 +5,15 @@ import java.util.List;
 
 public class Dataset {
 	
-	public class PageHistory {
+	public static class PageHistory {
 		
-		public class PageProperties {
+		public static class PageCycleProperties {
 			
 			private boolean changed;
 			private int numOfNewLinks;
 			private int numOfNewRelevantLinks;
 			
-			public PageProperties(boolean changed, int numOfNewLinks, int numOfRelevantNewLinks) {
+			public PageCycleProperties(boolean changed, int numOfNewLinks, int numOfRelevantNewLinks) {
 				this.changed = changed;
 				this.numOfNewLinks = numOfNewLinks;
 				this.numOfNewRelevantLinks = numOfRelevantNewLinks;
@@ -33,18 +33,18 @@ public class Dataset {
 			
 		}
 		
-		private List<PageProperties> cycles = new ArrayList<>();
+		private List<PageCycleProperties> pageCycles = new ArrayList<>();
 	        
-        public PageHistory(List<PageProperties> cycles) {
-        	this.cycles = cycles;
+        public PageHistory(List<PageCycleProperties> pageCycles) {
+        	this.pageCycles = pageCycles;
         }
         
         // return true if url changed between certain cycles (days)
     	public boolean changedBetweenCycles(int lastVisitCycle, int currentCycle) {
-    		PageProperties cycleFeatures;
+    		PageCycleProperties cycleFeatures;
 
     		for (int i = lastVisitCycle; i < currentCycle; i++) {
-    			cycleFeatures = cycles.get(i);
+    			cycleFeatures = pageCycles.get(i);
     			if (cycleFeatures.getChanged() == true)
     				return true;
     		}
@@ -52,12 +52,12 @@ public class Dataset {
     	}
 
 		// return the number of new (relevant) links between certain cycles (days)
-		public int numOfNewLinksBetweenCycles(int urlId, int lastVisitCycle, int currentCycle, boolean isLinkRelevant) {
+		public int numOfNewLinksBetweenCycles(int lastVisitCycle, int currentCycle, boolean isLinkRelevant) {
 			int numOfNewLinks = 0;
-    		PageProperties cycleFeatures;
+    		PageCycleProperties cycleFeatures;
 	
 			for (int i = lastVisitCycle; i < currentCycle; i++) {
-				cycleFeatures = cycles.get(i);
+				cycleFeatures = pageCycles.get(i);
 				if (!isLinkRelevant)
 					numOfNewLinks += cycleFeatures.getNumOfNewLinks();
 				else
@@ -68,11 +68,11 @@ public class Dataset {
 		
 		// Auxiliary methods
 		public int getNumOfCycles() {
-    		return cycles.size();
+    		return pageCycles.size();
     	}
 
-        public List<PageProperties> getCycles() {
-        	return cycles;
+        public List<PageCycleProperties> getCycles() {
+        	return pageCycles;
         }
 		
 	}
