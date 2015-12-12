@@ -19,12 +19,13 @@ public class DataExtractor {
 		return text;
 	}
 	
-	public static void generateDomainDataFile(String rootPath, String domainName, String fileName) {
+	public static void generateDomainDataFile(String rootPath, String domainName, String fileName) throws IOException {
 		
 		String domainPath = rootPath + domainName;
 		File domainFile = new File(domainPath);
 		String[] dateDirNames = domainFile.list();
 		StringBuilder currentPath;
+		PrintStream pageDataStream = new PrintStream(fileName);
 		
 		HashMap<String, String> relevantMap = new HashMap<>();
 		relevantMap.put("0", "data_negative/");
@@ -59,60 +60,58 @@ public class DataExtractor {
 						String textParsed;
 						String pageFingerprint;
 						StringBuilder pageData = new StringBuilder();
-						PrintStream pageDataStream;
 						
-						try {
-							urlJson = urlMapper.readValue(urlFile, TargetModelJson.class);
-							originalUrl = urlJson.getUrl();
-							redirectedUrl = urlJson.getRedirectedUrl();
-							textParsed = getTextFromFileUrl(urlFile);
-							pageFingerprint = getPageFingerprint(textParsed);
-							pageDataStream = new PrintStream(fileName);
-							pageData.append(domainName);
-							pageData.append(" ");
-							pageData.append(dateDirName);
-							pageData.append(" ");
-							pageData.append(domainUrlName);
-							pageData.append(" ");
-							pageData.append(originalUrl);
-							pageData.append(" ");
-							pageData.append(redirectedUrl);
-							pageData.append(" ");
-							pageData.append(relevant);
-							pageData.append(" ");
-							pageData.append(pageFingerprint);
-							pageData.append(" ");
-							pageDataStream.print(pageData);
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
+						urlJson = urlMapper.readValue(urlFile, TargetModelJson.class);
+						originalUrl = urlJson.getUrl();
+						redirectedUrl = urlJson.getRedirectedUrl();
+						textParsed = getTextFromFileUrl(urlFile);
+						pageFingerprint = getPageFingerprint(textParsed);
 						
+						pageData.append(domainName);
+						pageData.append(" ");
+						pageData.append(dateDirName);
+						pageData.append(" ");
+						pageData.append(domainUrlName);
+						pageData.append(" ");
+						pageData.append(originalUrl);
+						pageData.append(" ");
+						pageData.append(redirectedUrl);
+						pageData.append(" ");
+						pageData.append(relevant);
+						pageData.append(" ");
+						pageData.append(pageFingerprint);
+						pageData.append(" ");
+						pageDataStream.print(pageData);
 					}
-					
 				}
-				
 			}
-			
 		}
-		
+		pageDataStream.close();
 	}
 	
-	public static void generateDataFile(String rootPath, String fileName) {
+	public static void generateDataFile(String rootPath, String fileName) throws IOException {
 		
 		File rootFile = new File(rootPath);
 		String[] domainPaths = rootFile.list();
 		
 		for(String domainName : domainPaths) {
 			generateDomainDataFile(rootPath, domainName, fileName);
-		}
-		
+		}	
 	}
 	
 	public static void main(String[] args) {
-	
-	
-		String path = args[1];
 		
+		String rootPath = args[1];
+		String outputFilePath = "pageData.txt"; 
+		String outputFileHeader = "crawl_domain crawl_date url_domain original_url redirected_url classified_relevant content_hash";
+		PrintStream pageDataStream;
+		
+		try {
+			pageDataStream = new PrintStream(outputFilePath);
+			pageDataStream.append(outputFileHeader);
+			generateDataFile(rootPath, outputFilePath);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
-
 }
